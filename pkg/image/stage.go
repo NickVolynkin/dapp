@@ -6,59 +6,30 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context"
 )
 
 type Stage struct {
-	Name         string
-	Id           string
+	*Base
 	From         *Stage
-	BuiltId      string
 	Container    *StageContainer
 	BuiltInspect *types.ImageInspect
-	Inspect      *types.ImageInspect
 }
 
-func (i *Stage) ResetBuiltInspect(dockerApiClient *client.Client) error {
-	inspect, err := inspect(dockerApiClient, i.BuiltId)
-	if err != nil {
-		return err
-	}
-
-	i.BuiltInspect = inspect
-	return nil
-}
-
-func (i *Stage) ResetInspect(dockerApiClient *client.Client) error {
-	inspect, err := inspect(dockerApiClient, i.Name)
-	if err != nil {
-		return err
-	}
-
-	i.Inspect = inspect
-	return nil
-}
-
-func inspect(dockerApiClient *client.Client, imageId string) (*types.ImageInspect, error) {
-	ctx := context.Background()
-	inspect, _, err := dockerApiClient.ImageInspectWithRaw(ctx, imageId)
-	if err != nil {
-		if client.IsErrNotFound(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("stage inspect failed: %s", err)
-	}
-	return &inspect, nil
-}
-
-func NewStageImage(from *Stage, name string, builtId string) *Stage {
+func NewStageImage(from *Stage, ref string) *Stage {
 	stage := &Stage{}
+	stage.Base = NewBaseImage(ref)
 	stage.From = from
-	stage.BuiltId = builtId
-	stage.Name = name
 	stage.Container = NewStageImageContainer()
 	stage.Container.Image = stage
 	return stage
+}
+
+func (i *Stage) Id() string {
+	if i.BuiltInspect != nil {
+		return i.BuiltInspect.ID
+	} else {
+		return i.Base.Id()
+	}
 }
 
 func (i *Stage) Build(dockerClient *command.DockerCli, dockerApiClient *client.Client) error {
@@ -82,7 +53,13 @@ func (i *Stage) Commit(dockerApiClient *client.Client) error {
 	if err != nil {
 		return fmt.Errorf("stage commit failed: %s", err)
 	}
-	i.BuiltId = builtId
+
+	inspect, err := inspect(dockerApiClient, builtId)
+	if err != nil {
+		return err
+	}
+
+	i.BuiltInspect = inspect
 
 	return nil
 }

@@ -56,10 +56,6 @@ func main() {
 					return buildErr
 				}
 
-				if err := stageImage.ResetBuiltInspect(dockerApiClient); err != nil {
-					return err
-				}
-
 				return nil
 			})
 		case "introspect":

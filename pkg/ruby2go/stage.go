@@ -26,7 +26,7 @@ func rubyStageToImageStage(rubyStage *Stage) *image.Stage {
 		from = rubyStageToImageStage(rubyStage.From)
 	}
 
-	stageImage := image.NewStageImage(from, rubyStage.Name, rubyStage.BuildId)
+	stageImage := image.NewStageImage(from, rubyStage.Name)
 	stageImage.Inspect = rubyStage.ImageInspect
 	stageImage.BuiltInspect = rubyStage.BuiltImageInspect
 	stageImage.Container.RunCommands = rubyStage.BashCommands
@@ -44,8 +44,10 @@ func imageStageToRubyStage(imageStage *image.Stage) *Stage {
 		rubyImage.From = imageStageToRubyStage(imageStage.From)
 	}
 
-	rubyImage.Name = imageStage.Name
-	rubyImage.BuildId = imageStage.BuiltId
+	rubyImage.Name = imageStage.Ref
+	if imageStage.BuiltInspect != nil {
+		rubyImage.BuildId = imageStage.BuiltInspect.ID
+	}
 	rubyImage.ContainerName = imageStage.Container.Name
 	rubyImage.BashCommands = imageStage.Container.RunCommands
 	rubyImage.ServiceBashCommands = imageStage.Container.ServiceRunCommands

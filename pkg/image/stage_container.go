@@ -48,7 +48,7 @@ func (c *StageContainer) runArgs(dockerClient *dockerClient.DockerCli, dockerApi
 	}
 
 	args = append(args, runArgs...)
-	args = append(args, c.Image.From.BuiltId)
+	args = append(args, c.Image.From.Id())
 	args = append(args, "-ec")
 	args = append(args, c.PreparedRunCommand())
 
@@ -82,7 +82,7 @@ func (c *StageContainer) introspectArgs(dockerClient *dockerClient.DockerCli, do
 
 	args = append(args, runArgs...)
 	args = append(args, []string{"-ti", "--rm"}...)
-	args = append(args, c.Image.BuiltId)
+	args = append(args, c.Image.Id())
 	args = append(args, "-ec")
 	args = append(args, dappdeps.BaseBinPath("bash"))
 

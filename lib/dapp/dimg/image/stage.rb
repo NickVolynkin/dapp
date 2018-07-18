@@ -43,7 +43,6 @@ module Dapp
             :from,
             :built_image_inspect,
             :image_inspect,
-            :built_id,
             :bash_commands,
             :service_bash_commands,
             :options,
